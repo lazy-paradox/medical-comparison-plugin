@@ -1,0 +1,10 @@
+{
+  "id": "medical-comparison",
+  "name": "Medical Comparison",
+  "version": "0.0.1",
+  "minAppVersion": "1.4.0",
+  "description": "Medical revision comparison tables for conditions.",
+  "author": "You",
+  "authorUrl": "",
+  "isDesktopOnly": false
+}
