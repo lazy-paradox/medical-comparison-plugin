@@ -738,7 +738,7 @@ function makeEditable(td, app, conditionPath, contentKey, vault, onSave, initial
       const row = linesContainer.createDiv({ cls: "mc-cell-line" });
       if (enableRedFlags) {
         const flag = row.createSpan({ cls: line.redFlag ? "mc-red-flag-toggle is-active" : "mc-red-flag-toggle" });
-        flag.setText("\u{1F6A9}");
+        flag.innerHTML = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path><line x1="4" y1="22" x2="4" y2="15"></line></svg>';
         flag.addEventListener("click", (e) => {
           e.stopPropagation();
           const before = snapshot();
@@ -1444,7 +1444,7 @@ function renderTable(container, conditions, columns, vault, app, onSave, onHideC
           anyTag = true;
           const chip = tagsWrap.createSpan({ cls: "mc-cond-tag", text: v });
           if (tp.color) {
-            chip.style.backgroundColor = tp.color;
+            chip.style.backgroundColor = mcTagColorFor(tp.color);
           }
         }
       }
@@ -1542,7 +1542,7 @@ function renderRedFlagsColumn(td, condition, vault, onSave) {
         const line = cell.lines[i];
         const li = list.createEl("li", { cls: "mc-rf-item" });
         const flag = li.createSpan({ cls: "mc-red-flag-toggle is-active" });
-        flag.innerHTML = "\u{1F6A9}";
+        flag.innerHTML = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path><line x1="4" y1="22" x2="4" y2="15"></line></svg>';
         const textSpan = li.createSpan({ cls: "mc-rf-text" });
         textSpan.setText(rfVisible(line.text));
         flag.addEventListener("click", (e) => {
@@ -1563,7 +1563,7 @@ function renderRedFlagsColumn(td, condition, vault, onSave) {
       const line = notesLines[i];
       const li = list.createEl("li", { cls: "mc-rf-item" });
       const flag = li.createSpan({ cls: "mc-red-flag-toggle is-active" });
-      flag.innerHTML = "\u{1F6A9}";
+      flag.innerHTML = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path><line x1="4" y1="22" x2="4" y2="15"></line></svg>';
       const textSpan = li.createSpan({ cls: "mc-rf-text" });
       textSpan.setText(rfVisible(line.text));
       flag.addEventListener("click", (e) => {
@@ -1588,6 +1588,21 @@ function openNote(app, noteName) {
   } else {
     new import_obsidian4.Notice('Note "' + noteName + '" not found');
   }
+}
+function mcTagColorFor(color) {
+  if (!color) return "";
+  if (!document.body.classList.contains("theme-dark")) return color;
+  const map = {
+    "#d6e9c9": "#3b5c40",
+    "#cfeae6": "#35605a",
+    "#d2e8ef": "#33566b",
+    "#d4def5": "#3a4a72",
+    "#e4dcf5": "#4d4374",
+    "#f3d7de": "#74424f",
+    "#f7e0d2": "#75563c",
+    "#f7edd2": "#75663e"
+  };
+  return map[color.toLowerCase()] || color;
 }
 
 // src/components/sidebar.ts
@@ -2793,7 +2808,7 @@ function renderReadOnlyCell(td, lines, app) {
     const row = wrap.createDiv({ cls: "mc-cell-line" });
     if (line.redFlag) {
       const f = row.createSpan({ cls: "mc-red-flag-toggle is-active" });
-      f.setText("\u{1F6A9}");
+      f.innerHTML = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path><line x1="4" y1="22" x2="4" y2="15"></line></svg>';
     }
     renderAnnotatedText(row.createSpan({ cls: "mc-line-flow" }), line.text, app);
   }
@@ -2807,7 +2822,7 @@ function renderStaticRedFlags(td, condition) {
         has = true;
         const li = list.createEl("li", { cls: "mc-rf-item" });
         const flag = li.createSpan({ cls: "mc-red-flag-toggle is-active" });
-        flag.setText("\u{1F6A9}");
+        flag.innerHTML = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path><line x1="4" y1="22" x2="4" y2="15"></line></svg>';
         li.createSpan({ cls: "mc-rf-text", text: rfStripLine2(line.text) });
       }
     }
@@ -2818,7 +2833,7 @@ function renderStaticRedFlags(td, condition) {
       has = true;
       const li = list.createEl("li", { cls: "mc-rf-item" });
       const flag = li.createSpan({ cls: "mc-red-flag-toggle is-active" });
-      flag.setText("\u{1F6A9}");
+      flag.innerHTML = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path><line x1="4" y1="22" x2="4" y2="15"></line></svg>';
       li.createSpan({ cls: "mc-rf-text", text: rfStripLine2(line.text) });
     }
   }
@@ -3572,7 +3587,7 @@ var PropertiesModal = class extends import_obsidian12.Modal {
       palette.setAttribute("title", "Tag colour");
       for (const c of PASTEL_PALETTE) {
         const dot = palette.createSpan({ cls: "mc-palette-dot" });
-        dot.style.backgroundColor = c;
+        dot.style.backgroundColor = mcTagColorFor2(c);
         if (prop.color === c) dot.addClass("is-selected");
         dot.addEventListener("click", () => {
           this.properties[index].color = c;
@@ -3600,6 +3615,21 @@ var PropertiesModal = class extends import_obsidian12.Modal {
     });
   }
 };
+function mcTagColorFor2(color) {
+  if (!color) return "";
+  if (!document.body.classList.contains("theme-dark")) return color;
+  const map = {
+    "#d6e9c9": "#3b5c40",
+    "#cfeae6": "#35605a",
+    "#d2e8ef": "#33566b",
+    "#d4def5": "#3a4a72",
+    "#e4dcf5": "#4d4374",
+    "#f3d7de": "#74424f",
+    "#f7e0d2": "#75563c",
+    "#f7edd2": "#75663e"
+  };
+  return map[color.toLowerCase()] || color;
+}
 
 // src/components/foldCommand.ts
 var import_obsidian13 = require("obsidian");
@@ -3687,11 +3717,16 @@ function applyGlobalZoom(zoom) {
     document.head.appendChild(styleEl);
   }
   const safeZoom = clampZoom(zoom);
-  styleEl.textContent = ":root { --mc-zoom: " + safeZoom + "; } .workspace-split.mod-root .view-content { zoom: " + safeZoom + "; }";
+  const zoomSel = import_obsidian14.Platform.isMobile ? ".workspace-split.mod-root .mc-table-wrapper" : ".workspace-split.mod-root .view-content";
+  styleEl.textContent = ":root { --mc-zoom: " + safeZoom + "; } " + zoomSel + " { zoom: " + safeZoom + "; }";
   const dockedBar = document.querySelector(".mc-toolbar-docked");
   if (dockedBar) {
-    const compactBar = dockedBar.hasClass("mc-toolbar-compact");
-    dockedBar.style.zoom = String((compactBar ? 0.85 : 1) / safeZoom);
+    if (import_obsidian14.Platform.isMobile) {
+      dockedBar.style.zoom = dockedBar.hasClass("mc-toolbar-compact") ? "0.85" : "";
+    } else {
+      const compactBar = dockedBar.hasClass("mc-toolbar-compact");
+      dockedBar.style.zoom = String((compactBar ? 0.85 : 1) / safeZoom);
+    }
   }
 }
 function adjustGlobalZoom(plugin, delta) {
@@ -3927,7 +3962,9 @@ function createToolbar(plugin) {
   bindDockPositionOnce(plugin);
   if (!import_obsidian14.Platform.isMobile) makeDraggable(toolbar, title, plugin);
   if (isDockedMode(plugin)) {
-    dockToolbarIntoActiveView(plugin, toolbar);
+    plugin.app.workspace.onLayoutReady(() => {
+      dockToolbarIntoActiveView(plugin, toolbar);
+    });
   } else {
     document.body.appendChild(toolbar);
   }
@@ -3961,7 +3998,11 @@ function dockToolbarIntoActiveView(plugin, toolbarEl) {
   toolbar.style.top = "";
   toolbar.style.transform = "";
   const compact = toolbar.hasClass("mc-toolbar-compact");
-  toolbar.style.zoom = String((compact ? 0.85 : 1) / clampZoom(plugin.settings.defaultZoom));
+  if (import_obsidian14.Platform.isMobile) {
+    toolbar.style.zoom = compact ? "0.85" : "";
+  } else {
+    toolbar.style.zoom = String((compact ? 0.85 : 1) / clampZoom(plugin.settings.defaultZoom));
+  }
   document.querySelectorAll(".mc-tb-dock-host").forEach((el) => el.removeClass("mc-tb-dock-host"));
   host.addClass("mc-tb-dock-host");
 }
@@ -3982,7 +4023,15 @@ function bindDockPositionOnce(plugin) {
   plugin.registerEvent(plugin.app.workspace.on("active-leaf-change", redock));
   plugin.registerInterval(window.setInterval(() => {
     if (!isDockedMode(plugin)) return;
-    if (!document.querySelector(".mc-toolbar")) recreateToolbar(plugin);
+    const strip = document.querySelector(".mc-toolbar");
+    if (!strip) {
+      recreateToolbar(plugin);
+      return;
+    }
+    const host = getDockHost();
+    if (host && strip.parentElement !== host) {
+      dockToolbarIntoActiveView(plugin, strip);
+    }
   }, 2e3));
 }
 function makeDraggable(toolbar, handle, plugin) {
@@ -4210,7 +4259,7 @@ var RedFlagWidget = class extends import_view2.WidgetType {
   toDOM(view) {
     const span = document.createElement("span");
     span.className = "mc-cm-flag" + (this.active ? " is-active" : "");
-    span.textContent = "\u{1F6A9}";
+    span.innerHTML = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path><line x1="4" y1="22" x2="4" y2="15"></line></svg>';
     span.addEventListener("mousedown", (e) => {
       e.preventDefault();
       e.stopPropagation();

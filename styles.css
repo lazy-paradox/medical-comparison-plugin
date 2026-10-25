@@ -1458,3 +1458,7 @@
   .mc-saved-views-resizer { height: 16px; min-height: 16px; }
   .mc-saved-views-resizer::before { width: 56px; height: 6px; }
 }
+
+/* ===== v0.0.2 mobile fixes ===== */
+.mc-red-flag-toggle svg, .mc-cm-flag svg { display: block; }
+.theme-dark .mc-cond-tag { color: #d8d8d8; }
