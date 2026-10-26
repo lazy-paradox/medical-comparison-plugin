@@ -3954,9 +3954,7 @@ function createToolbar(plugin) {
   if (isDockedMode(plugin)) {
     toolbar.style.display = "none";
     document.body.appendChild(toolbar);
-    mcDbg(plugin, "created parked=body");
     plugin.app.workspace.onLayoutReady(() => {
-      mcDbg(plugin, "layoutReady -> dock");
       dockToolbarIntoActiveView(plugin, toolbar);
     });
   } else {
@@ -3983,11 +3981,9 @@ function dockToolbarIntoActiveView(plugin, toolbarEl) {
   const host = getDockHost();
   if (!host) {
     if (!toolbar.isConnected) document.body.appendChild(toolbar);
-    mcDbg(plugin, "dock: no host, stays parked");
     return;
   }
   toolbar.style.display = "";
-  mcDbg(plugin, "dock: host=" + dbgEl(host));
   if (toolbar.parentElement !== host) host.insertBefore(toolbar, host.firstChild);
   toolbar.addClass("mc-toolbar-docked");
   toolbar.style.left = "";
@@ -4020,7 +4016,6 @@ function bindDockPositionOnce(plugin) {
   plugin.registerEvent(plugin.app.workspace.on("active-leaf-change", redock));
   plugin.registerInterval(window.setInterval(() => {
     if (!isDockedMode(plugin)) return;
-    mcDbgTick(plugin);
     if (!plugin.app.workspace.layoutReady) {
       return;
     }
@@ -4097,60 +4092,6 @@ function makeDraggable(toolbar, handle, plugin) {
     plugin.settings.toolbarMode = isDocked() ? "docked" : "floating";
     void plugin.saveSettings();
   });
-}
-var mcDbgLast = "";
-var mcDbgBusy = false;
-function dbgEl(el) {
-  if (!el) return "null";
-  const cn = typeof el.className === "string" ? el.className.split(" ")[0] : "";
-  return el.nodeName + "." + cn;
-}
-function mcDbg(plugin, msg) {
-  if (!import_obsidian14.Platform.isMobile) return;
-  if (mcDbgBusy) return;
-  mcDbgBusy = true;
-  void (async () => {
-    try {
-      const line = (/* @__PURE__ */ new Date()).toISOString().slice(11, 19) + " " + msg;
-      const file = plugin.app.vault.getAbstractFileByPath("MC Debug.md");
-      if (file instanceof import_obsidian14.TFile) {
-        const txt = await plugin.app.vault.read(file);
-        let lines = txt.split("\n");
-        lines.push(line);
-        if (lines.length > 60) lines = lines.slice(lines.length - 60);
-        await plugin.app.vault.modify(file, lines.join("\n"));
-      } else {
-        await plugin.app.vault.create("MC Debug.md", line);
-      }
-    } catch (e) {
-    } finally {
-      mcDbgBusy = false;
-    }
-  })();
-}
-function mcDbgTick(plugin) {
-  const strip = document.querySelector(".mc-toolbar");
-  if (!strip) {
-    if (mcDbgLast !== "none") {
-      mcDbgLast = "none";
-      mcDbg(plugin, "tick strip=none");
-    }
-    return;
-  }
-  const r = strip.getBoundingClientRect();
-  const cs = getComputedStyle(strip);
-  const par = strip.parentElement;
-  const pn = !par ? "none" : par === document.body ? "BODY" : dbgEl(par);
-  const host = getDockHost();
-  const cx = r.left + r.width / 2;
-  const cy = r.top + Math.max(4, r.height / 2);
-  const ctr = document.elementFromPoint(cx, cy);
-  const top = document.elementFromPoint(r.left + 8, r.top + 3);
-  const snap = "p=" + pn + " pos=" + cs.position + " z=" + cs.zoom + " t" + Math.round(r.top) + " l" + Math.round(r.left) + " w" + Math.round(r.width) + " h" + Math.round(r.height) + " host=" + (host ? dbgEl(host) : "none") + " LR=" + (plugin.app.workspace.layoutReady ? 1 : 0) + " top=" + dbgEl(top) + " ctr=" + dbgEl(ctr);
-  if (snap !== mcDbgLast) {
-    mcDbgLast = snap;
-    mcDbg(plugin, "tick " + snap);
-  }
 }
 function getActiveComparisonView(plugin) {
   const leaves = plugin.app.workspace.getLeavesOfType(VIEW_TYPE_COMPARISON);
