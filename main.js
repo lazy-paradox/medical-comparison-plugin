@@ -2930,6 +2930,31 @@ function renderDiffTable(container, conditions, primaryPath, columns, app) {
 // src/views/comparisonView.ts
 var VIEW_TYPE_COMPARISON = "medical-comparison-view";
 var FIND_ICON_SVG = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>';
+var mcKbBusy = false;
+function mcKbLog(view, msg) {
+  if (!import_obsidian9.Platform.isMobile) return;
+  if (mcKbBusy) return;
+  mcKbBusy = true;
+  void (async () => {
+    try {
+      const line = (/* @__PURE__ */ new Date()).toISOString().slice(11, 19) + " " + msg;
+      const vault = view.app.vault;
+      const file = vault.getAbstractFileByPath("MC Debug.md");
+      if (file instanceof import_obsidian9.TFile) {
+        const txt = await vault.read(file);
+        const lines = txt.split("\n");
+        lines.push(line);
+        const keep = lines.length > 80 ? lines.slice(lines.length - 80) : lines;
+        await vault.modify(file, keep.join("\n"));
+      } else {
+        await vault.create("MC Debug.md", line);
+      }
+    } catch (e) {
+    } finally {
+      mcKbBusy = false;
+    }
+  })();
+}
 var ComparisonView = class _ComparisonView extends import_obsidian9.ItemView {
   constructor(leaf, plugin) {
     super(leaf);
@@ -2974,8 +2999,10 @@ var ComparisonView = class _ComparisonView extends import_obsidian9.ItemView {
   fitToVisualViewport(vv) {
     const editing = this.contentEl.querySelector(".mc-cell-editor");
     const gap = window.innerHeight - vv.height;
+    mcKbLog(this, "kb fit ih=" + window.innerHeight + " vh=" + Math.round(vv.height) + " ot=" + Math.round(vv.offsetTop) + " pt=" + Math.round(vv.pageTop) + " gap=" + Math.round(gap) + " ed=" + (editing ? 1 : 0) + " scY=" + Math.round(window.scrollY));
     if (!(editing instanceof HTMLElement) || gap < 120) {
       this.contentEl.style.height = "";
+      mcKbLog(this, "kb off gap=" + Math.round(gap) + " ed=" + (editing ? 1 : 0));
       return;
     }
     const top = Math.max(0, this.contentEl.getBoundingClientRect().top);
@@ -2984,6 +3011,7 @@ var ComparisonView = class _ComparisonView extends import_obsidian9.ItemView {
       this.contentEl.style.height = Math.round(avail) + "px";
     }
     window.scrollTo(0, 0);
+    mcKbLog(this, "kb set h=" + this.contentEl.style.height + " top=" + Math.round(top) + " bot=" + Math.round(this.contentEl.getBoundingClientRect().bottom));
     const wrap = this.contentEl.querySelector(".mc-table-wrapper");
     if (wrap instanceof HTMLElement && editing instanceof HTMLElement) {
       const wr = wrap.getBoundingClientRect();
@@ -2991,6 +3019,12 @@ var ComparisonView = class _ComparisonView extends import_obsidian9.ItemView {
       const want = wrap.scrollTop + (er.top - wr.top) - 40;
       wrap.scrollTop = Math.max(0, Math.round(want));
     }
+    window.setTimeout(() => {
+      const vv2 = window.visualViewport;
+      if (!vv2) return;
+      const r2 = this.contentEl.getBoundingClientRect();
+      mcKbLog(this, "+800 ih=" + window.innerHeight + " vh=" + Math.round(vv2.height) + " ot=" + Math.round(vv2.offsetTop) + " pt=" + Math.round(vv2.pageTop) + " bot=" + Math.round(r2.bottom) + " scY=" + Math.round(window.scrollY));
+    }, 800);
   }
   async onOpen() {
     this.bindKeyboardViewport();
