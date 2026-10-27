@@ -1482,3 +1482,13 @@
 }
 .mc-red-flag-toggle.is-active svg,
 .mc-cm-flag.is-active svg { animation: mc-flag-pop 0.25s ease; }
+/* ===== v0.0.5: mobile note-dock offset ===== */
+/* Phones/tablets: markdown leaves have no in-flow view-header, so
+   .view-content starts at the very top of the screen and a docked
+   strip lands in the iOS status-bar zone - under the clock, and iOS
+   steals the taps. Push it below the status bar + mobile top bar.
+   Comparison-view leaves keep their header, so they are unaffected. */
+.is-mobile .mc-tb-dock-host:has(> .markdown-source-view) > .mc-toolbar-docked,
+.is-mobile .mc-tb-dock-host:has(> .markdown-reading-view) > .mc-toolbar-docked {
+  margin-top: calc(env(safe-area-inset-top) + 60px);
+}

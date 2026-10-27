@@ -2946,6 +2946,7 @@ var ComparisonView = class _ComparisonView extends import_obsidian9.ItemView {
     this.sidebar = null;
     this.sidebarCollapsed = false;
     this.colPanelCleanup = null;
+    this.kbHandler = null;
     this.plugin = plugin;
   }
   getViewType() {
@@ -2957,7 +2958,42 @@ var ComparisonView = class _ComparisonView extends import_obsidian9.ItemView {
   getIcon() {
     return "table";
   }
+  bindKeyboardViewport() {
+    if (this.kbHandler) return;
+    if (!import_obsidian9.Platform.isMobile) return;
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const h = () => {
+      this.fitToVisualViewport(vv);
+    };
+    vv.addEventListener("resize", h);
+    this.kbHandler = () => {
+      vv.removeEventListener("resize", h);
+    };
+  }
+  fitToVisualViewport(vv) {
+    const editing = this.contentEl.querySelector(".mc-cell-editor");
+    const gap = window.innerHeight - vv.height;
+    if (!(editing instanceof HTMLElement) || gap < 120) {
+      this.contentEl.style.height = "";
+      return;
+    }
+    const top = Math.max(0, this.contentEl.getBoundingClientRect().top);
+    const avail = vv.height - top;
+    if (avail > 200) {
+      this.contentEl.style.height = Math.round(avail) + "px";
+    }
+    window.scrollTo(0, 0);
+    const wrap = this.contentEl.querySelector(".mc-table-wrapper");
+    if (wrap instanceof HTMLElement && editing instanceof HTMLElement) {
+      const wr = wrap.getBoundingClientRect();
+      const er = editing.getBoundingClientRect();
+      const want = wrap.scrollTop + (er.top - wr.top) - 40;
+      wrap.scrollTop = Math.max(0, Math.round(want));
+    }
+  }
   async onOpen() {
+    this.bindKeyboardViewport();
     this.sidebarCollapsed = window.innerWidth < 600;
     if (this.plugin.activeTemplateId) {
       this.activeTemplateId = this.plugin.activeTemplateId;
@@ -2975,6 +3011,10 @@ var ComparisonView = class _ComparisonView extends import_obsidian9.ItemView {
   }
   async onClose() {
     this.closeColumnPanel();
+    if (this.kbHandler) {
+      this.kbHandler();
+      this.kbHandler = null;
+    }
   }
   setTemplate(templateId) {
     this.activeTemplateId = templateId;
