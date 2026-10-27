@@ -2993,7 +2993,6 @@ var ComparisonView = class _ComparisonView extends import_obsidian9.ItemView {
     const maxScroll = wrap.scrollHeight - wrap.clientHeight;
     const target = Math.min(Math.round(want), Math.max(0, maxScroll));
     wrap.scrollTop = Math.max(0, target);
-    window.scrollTo(0, 0);
   }
   async onOpen() {
     this.bindKeyboardViewport();
