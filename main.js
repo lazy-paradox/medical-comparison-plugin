@@ -2987,13 +2987,35 @@ var ComparisonView = class _ComparisonView extends import_obsidian9.ItemView {
     if (this.kbHandler) return;
     if (!import_obsidian9.Platform.isMobile) return;
     const vv = window.visualViewport;
-    if (!vv) return;
-    const h = () => {
-      this.fitToVisualViewport(vv);
+    mcKbLog(this, "bind vv=" + (vv ? 1 : 0) + " ih=" + window.innerHeight);
+    const later = () => {
+      this.fitToKeyboard(vv);
     };
-    vv.addEventListener("resize", h);
+    const onIn = (ev) => {
+      const t = ev.target;
+      if (!(t instanceof HTMLElement)) return;
+      if (!t.hasClass("mc-cell-editor")) return;
+      mcKbLog(this, "focus ih=" + window.innerHeight + " vh=" + (vv ? Math.round(vv.height) : -1));
+      window.setTimeout(later, 350);
+    };
+    const onOut = (ev) => {
+      const t = ev.target;
+      if (!(t instanceof HTMLElement)) return;
+      if (!t.hasClass("mc-cell-editor")) return;
+      this.contentEl.style.height = "";
+      window.scrollTo(0, 0);
+      mcKbLog(this, "blur restore");
+    };
+    this.contentEl.addEventListener("focusin", onIn);
+    this.contentEl.addEventListener("focusout", onOut);
+    const onRs = () => {
+      mcKbLog(this, "win resize ih=" + window.innerHeight + " vh=" + (vv ? Math.round(vv.height) : -1));
+    };
+    window.addEventListener("resize", onRs);
     this.kbHandler = () => {
-      vv.removeEventListener("resize", h);
+      this.contentEl.removeEventListener("focusin", onIn);
+      this.contentEl.removeEventListener("focusout", onOut);
+      window.removeEventListener("resize", onRs);
     };
   }
   fitToVisualViewport(vv) {
@@ -3024,6 +3046,50 @@ var ComparisonView = class _ComparisonView extends import_obsidian9.ItemView {
       if (!vv2) return;
       const r2 = this.contentEl.getBoundingClientRect();
       mcKbLog(this, "+800 ih=" + window.innerHeight + " vh=" + Math.round(vv2.height) + " ot=" + Math.round(vv2.offsetTop) + " pt=" + Math.round(vv2.pageTop) + " bot=" + Math.round(r2.bottom) + " scY=" + Math.round(window.scrollY));
+    }, 800);
+  }
+  fitToKeyboard(vv) {
+    const editing = this.contentEl.querySelector(".mc-cell-editor");
+    if (!(editing instanceof HTMLElement)) return;
+    const ih = window.innerHeight;
+    let vh = vv ? vv.height : ih;
+    const gap = ih - vh;
+    let est = 0;
+    if (gap < 120) {
+      est = 1;
+      vh = Math.round(ih * 0.55);
+    }
+    const top = Math.max(0, this.contentEl.getBoundingClientRect().top);
+    const avail = Math.round(vh - top);
+    if (avail > 200) {
+      this.contentEl.style.height = avail + "px";
+    }
+    window.scrollTo(0, 0);
+    const wrap = this.contentEl.querySelector(".mc-table-wrapper");
+    if (wrap instanceof HTMLElement) {
+      const wr = wrap.getBoundingClientRect();
+      const er = editing.getBoundingClientRect();
+      const want = wrap.scrollTop + (er.top - wr.top) - 40;
+      wrap.scrollTop = Math.max(0, Math.round(want));
+    }
+    mcKbLog(this, "fit ih=" + ih + " vh=" + Math.round(vv ? vv.height : -1) + " est=" + est + " h=" + this.contentEl.style.height + " top=" + Math.round(top));
+    window.setTimeout(() => {
+      const vv2 = window.visualViewport;
+      const r2 = this.contentEl.getBoundingClientRect();
+      const py = Math.max(
+        40,
+        Math.round((vv2 ? vv2.height : ih) - 60)
+      );
+      const probe = document.elementFromPoint(
+        Math.round(window.innerWidth / 2),
+        py
+      );
+      let pn = "null";
+      if (probe) {
+        const cn = typeof probe.className === "string" ? probe.className.split(" ")[0] : "";
+        pn = probe.nodeName + "." + cn;
+      }
+      mcKbLog(this, "+800 ih=" + window.innerHeight + " vh=" + (vv2 ? Math.round(vv2.height) : -1) + " ot=" + (vv2 ? Math.round(vv2.offsetTop) : -1) + " bot=" + Math.round(r2.bottom) + " scY=" + Math.round(window.scrollY) + " probe=" + pn);
     }, 800);
   }
   async onOpen() {
