@@ -1492,3 +1492,21 @@
 .is-mobile .mc-tb-dock-host:has(> .markdown-reading-view) > .mc-toolbar-docked {
   margin-top: calc(env(safe-area-inset-top) + 60px);
 }
+/* ===== v0.0.15: column jump button ===== */
+.mc-col-jump-btn {
+  margin-left: auto;
+  padding: 2px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  line-height: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.mc-col-jump-btn:hover { color: var(--text-normal); }
+.mc-col-jump-btn svg { display: block; }
+@media (hover: none) {
+  .mc-col-jump-btn { min-height: 30px; min-width: 30px; }
+}

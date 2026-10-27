@@ -2930,6 +2930,7 @@ function renderDiffTable(container, conditions, primaryPath, columns, app) {
 // src/views/comparisonView.ts
 var VIEW_TYPE_COMPARISON = "medical-comparison-view";
 var FIND_ICON_SVG = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>';
+var JUMP_ICON_SVG = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>';
 var ComparisonView = class _ComparisonView extends import_obsidian9.ItemView {
   constructor(leaf, plugin) {
     super(leaf);
@@ -3261,6 +3262,7 @@ var ComparisonView = class _ComparisonView extends import_obsidian9.ItemView {
         const rootCb = rootRow.createEl("input", { type: "checkbox" });
         rootCb.checked = this.isColumnVisible(col.id);
         rootRow.createSpan({ text: col.heading });
+        this.addJumpBtn(rootRow, col.id);
         rootCb.addEventListener("change", () => {
           this.setColumnHidden(col.id, !rootCb.checked);
           renderPanel();
@@ -3271,6 +3273,7 @@ var ComparisonView = class _ComparisonView extends import_obsidian9.ItemView {
           const childCb = childRow.createEl("input", { type: "checkbox" });
           childCb.checked = this.isColumnVisible(childId);
           childRow.createSpan({ text: childHeading });
+          this.addJumpBtn(childRow, childId);
           childCb.addEventListener("change", () => {
             this.setColumnHidden(childId, !childCb.checked);
             renderPanel();
@@ -3298,6 +3301,35 @@ var ComparisonView = class _ComparisonView extends import_obsidian9.ItemView {
       panel.remove();
       document.removeEventListener("mousedown", onDocMouseDown, true);
     };
+  }
+  addJumpBtn(row, colId) {
+    const btn = row.createEl("button", { cls: "mc-col-jump-btn" });
+    btn.innerHTML = JUMP_ICON_SVG;
+    btn.setAttribute("aria-label", "Jump to column");
+    btn.setAttribute("title", "Jump to column");
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      this.jumpToColumn(colId);
+    });
+  }
+  jumpToColumn(colId) {
+    const wrap = this.contentEl.querySelector(".mc-table-wrapper");
+    const th = this.contentEl.querySelector(
+      'th[data-col-id="' + colId + '"]'
+    );
+    if (!(wrap instanceof HTMLElement)) return;
+    if (!(th instanceof HTMLElement)) return;
+    const z = parseFloat(getComputedStyle(wrap).zoom) || 1;
+    const wr = wrap.getBoundingClientRect();
+    const tr = th.getBoundingClientRect();
+    const want = wrap.scrollLeft + (tr.left - wr.left) / z - 8;
+    const maxL = wrap.scrollWidth - wrap.clientWidth;
+    const left = Math.max(
+      0,
+      Math.min(Math.round(want), Math.max(0, maxL))
+    );
+    wrap.scrollTo({ left, behavior: "smooth" });
+    this.closeColumnPanel();
   }
   getVisibleColumns() {
     const out = [];
