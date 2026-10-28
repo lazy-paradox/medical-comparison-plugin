@@ -676,11 +676,41 @@ function rfStripLine2(text) {
 }
 
 // src/table/cellEditor.ts
+var IMAGE_EXTS = ["png", "jpg", "jpeg", "gif", "svg", "webp", "bmp", "avif"];
+function renderEmbed(parent, inner, app, sourcePath) {
+  const bar = inner.indexOf("|");
+  const target = (bar >= 0 ? inner.slice(0, bar) : inner).trim();
+  const wRaw = bar >= 0 ? inner.slice(bar + 1).trim() : "";
+  const file = app.metadataCache.getFirstLinkpathDest(target, sourcePath);
+  if (!file) return false;
+  if (IMAGE_EXTS.indexOf(file.extension.toLowerCase()) < 0) return false;
+  const src = app.vault.getResourcePath(file);
+  const img = parent.createEl("img", { cls: "mc-cell-embed" });
+  img.src = src;
+  if (/^\d+$/.test(wRaw)) img.setAttribute("width", wRaw);
+  img.setAttribute("alt", target);
+  img.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const overlay = document.body.createDiv({ cls: "mc-lightbox" });
+    const big = overlay.createEl("img");
+    big.src = src;
+    overlay.addEventListener("click", () => overlay.remove());
+  });
+  return true;
+}
 function renderLineWithLinks(parent, text, app, sourcePath) {
   const re = /\[\[([^\]]+)\]\]/g;
   let cursor = 0;
   let m;
   while ((m = re.exec(text)) !== null) {
+    const isEmbed = m.index > 0 && text.charAt(m.index - 1) === "!";
+    if (isEmbed && renderEmbed(parent, m[1], app, sourcePath)) {
+      if (m.index - 1 > cursor) {
+        parent.createSpan({ cls: "mc-line-plain", text: text.slice(cursor, m.index - 1) });
+      }
+      cursor = m.index + m[0].length;
+      continue;
+    }
     if (m.index > cursor) {
       parent.createSpan({ cls: "mc-line-plain", text: text.slice(cursor, m.index) });
     }
@@ -1031,6 +1061,7 @@ function makeEditable(td, app, conditionPath, contentKey, vault, onSave, initial
     if (t.closest(".mc-red-flag-toggle")) return;
     if (t.closest(".mc-ann-phrase")) return;
     if (t.closest("a")) return;
+    if (t.closest(".mc-cell-embed")) return;
     if (t.closest(".mc-cell-link")) return;
     if (t.closest(".mc-callout-head")) return;
     startEditing(e.clientX, e.clientY);
