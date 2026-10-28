@@ -699,6 +699,35 @@ function renderLineWithLinks(parent, text, app, sourcePath) {
     parent.createSpan({ cls: "mc-line-plain", text: text.slice(cursor) });
   }
 }
+var CALLOUT_RE = /^>\s*\[!(\w+)\]([+-])?\s*(.*)$/;
+var CALLOUT_COLORS = {
+  note: "#086ddd",
+  info: "#086ddd",
+  todo: "#086ddd",
+  tip: "#009649",
+  success: "#009649",
+  done: "#009649",
+  question: "#e0ac00",
+  help: "#e0ac00",
+  faq: "#e0ac00",
+  warning: "#e0ac00",
+  caution: "#e0ac00",
+  attention: "#e0ac00",
+  danger: "#d4232f",
+  error: "#d4232f",
+  failure: "#d4232f",
+  fail: "#d4232f",
+  bug: "#d4232f",
+  example: "#7852ee",
+  abstract: "#7852ee",
+  summary: "#7852ee",
+  tldr: "#7852ee",
+  quote: "#9e9e9e",
+  cite: "#9e9e9e"
+};
+function calloutColor(type) {
+  return CALLOUT_COLORS[type.toLowerCase()] || CALLOUT_COLORS["note"];
+}
 function makeEditable(td, app, conditionPath, contentKey, vault, onSave, initialLines, enableRedFlags) {
   let currentLines = initialLines.map((l) => ({ text: l.text, redFlag: l.redFlag }));
   let isEditing = false;
@@ -737,8 +766,8 @@ function makeEditable(td, app, conditionPath, contentKey, vault, onSave, initial
   };
   const renderDisplay = () => {
     linesContainer.empty();
-    currentLines.forEach((line, i) => {
-      const row = linesContainer.createDiv({ cls: "mc-cell-line" });
+    const renderLineRow = (parent, line, i2, displayText) => {
+      const row = parent.createDiv({ cls: "mc-cell-line" });
       if (enableRedFlags) {
         const flag = row.createSpan({ cls: line.redFlag ? "mc-red-flag-toggle is-active" : "mc-red-flag-toggle" });
         flag.innerHTML = FLAG_ICON_SVG;
@@ -756,27 +785,60 @@ function makeEditable(td, app, conditionPath, contentKey, vault, onSave, initial
         });
       }
       const flow = row.createSpan({ cls: "mc-line-flow" });
-      const anns = findAllAnnotations(line.text);
+      const anns = findAllAnnotations(displayText);
       if (anns.length === 0) {
-        renderLineWithLinks(flow, line.text, app, conditionPath);
+        renderLineWithLinks(flow, displayText, app, conditionPath);
       } else {
         let cursor = 0;
         anns.forEach((ann, occ) => {
           if (ann.open > cursor) {
-            renderLineWithLinks(flow, line.text.slice(cursor, ann.open), app, conditionPath);
+            renderLineWithLinks(flow, displayText.slice(cursor, ann.open), app, conditionPath);
           }
           const phraseEl = flow.createSpan({ cls: "mc-ann-phrase", text: ann.phrase });
           phraseEl.addEventListener("click", (e) => {
             e.stopPropagation();
-            openAnnotationModal(i, occ);
+            openAnnotationModal(i2, occ);
           });
           cursor = ann.close + 2;
         });
-        if (cursor < line.text.length) {
-          renderLineWithLinks(flow, line.text.slice(cursor), app, conditionPath);
+        if (cursor < displayText.length) {
+          renderLineWithLinks(flow, displayText.slice(cursor), app, conditionPath);
         }
       }
-    });
+    };
+    let i = 0;
+    while (i < currentLines.length) {
+      const m = currentLines[i].text.match(CALLOUT_RE);
+      if (m) {
+        let j = i + 1;
+        while (j < currentLines.length && currentLines[j].text.startsWith(">")) j++;
+        const box = linesContainer.createDiv({ cls: "mc-callout" });
+        box.style.borderLeftColor = calloutColor(m[1]);
+        const head = box.createDiv({ cls: "mc-callout-head" });
+        const chev = head.createSpan({ cls: "mc-callout-chevron", text: ">" });
+        head.createSpan({ cls: "mc-callout-title", text: m[3] || m[1] });
+        const body = box.createDiv({ cls: "mc-callout-body" });
+        if (m[2] === "-") box.addClass("is-collapsed");
+        chev.setText(box.hasClass("is-collapsed") ? ">" : "v");
+        head.addEventListener("click", (e) => {
+          e.stopPropagation();
+          if (box.hasClass("is-collapsed")) {
+            box.removeClass("is-collapsed");
+          } else {
+            box.addClass("is-collapsed");
+          }
+          chev.setText(box.hasClass("is-collapsed") ? ">" : "v");
+        });
+        for (let k = i + 1; k < j; k++) {
+          const stripped = currentLines[k].text.replace(/^>\s?/, "");
+          renderLineRow(body, currentLines[k], k, stripped);
+        }
+        i = j;
+      } else {
+        renderLineRow(linesContainer, currentLines[i], i, currentLines[i].text);
+        i++;
+      }
+    }
     if (currentLines.length === 0) {
       linesContainer.createDiv({ cls: "mc-cell-empty" });
     }
@@ -969,6 +1031,7 @@ function makeEditable(td, app, conditionPath, contentKey, vault, onSave, initial
     if (t.closest(".mc-ann-phrase")) return;
     if (t.closest("a")) return;
     if (t.closest(".mc-cell-link")) return;
+    if (t.closest(".mc-callout-head")) return;
     startEditing(e.clientX, e.clientY);
   });
   renderDisplay();
