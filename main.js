@@ -198,15 +198,19 @@ var MANUAL_SECTIONS = [
     ]
   }
 ];
-function renderManual(container) {
-  container.empty();
-  container.createEl("h3", { text: MANUAL_TITLE });
+function buildManualMarkdown() {
+  const out = [];
+  out.push("# " + MANUAL_TITLE);
+  out.push("");
   for (const sec of MANUAL_SECTIONS) {
-    container.createEl("h4", { text: sec.heading });
+    out.push("## " + sec.heading);
+    out.push("");
     for (const ln of sec.lines) {
-      container.createEl("p", { text: ln });
+      out.push(ln);
+      out.push("");
     }
   }
+  return out.join("\n");
 }
 
 // src/views/comparisonView.ts
@@ -4479,8 +4483,26 @@ var MedicalComparisonSettingTab = class extends import_obsidian15.PluginSettingT
         );
       }
     }
-    const manualEl = containerEl.createDiv();
-    renderManual(manualEl);
+    const man = new import_obsidian15.Setting(containerEl);
+    man.setName("User manual");
+    man.setDesc("Opens the README note (created at vault root on first open).");
+    man.addButton((btn) => {
+      btn.setButtonText("Open README");
+      btn.onClick(() => {
+        const path = "Medical Comparison README.md";
+        const file = this.app.vault.getAbstractFileByPath(path);
+        if (file instanceof import_obsidian15.TFile) {
+          this.app.workspace.openLinkText(path, "", false);
+          return;
+        }
+        void this.app.vault.create(
+          path,
+          buildManualMarkdown()
+        ).then(() => {
+          this.app.workspace.openLinkText(path, "", false);
+        });
+      });
+    });
   }
 };
 
