@@ -723,7 +723,8 @@ var CALLOUT_COLORS = {
   summary: "#7852ee",
   tldr: "#7852ee",
   quote: "#9e9e9e",
-  cite: "#9e9e9e"
+  cite: "#9e9e9e",
+  plain: "#9e9e9e"
 };
 function calloutColor(type) {
   return CALLOUT_COLORS[type.toLowerCase()] || CALLOUT_COLORS["note"];
@@ -3010,6 +3011,7 @@ var ComparisonView = class _ComparisonView extends import_obsidian9.ItemView {
     this.sidebar = null;
     this.sidebarCollapsed = false;
     this.colPanelCleanup = null;
+    this.rerenderTimer = null;
     this.kbHandler = null;
     this.plugin = plugin;
   }
@@ -3070,7 +3072,11 @@ var ComparisonView = class _ComparisonView extends import_obsidian9.ItemView {
     this.registerEvent(
       this.app.vault.on("modify", (file) => {
         if (file instanceof import_obsidian9.TFile && hasComparisonTag(this.app, file, this.getCurrentTemplateName())) {
-          this.loadAndRender();
+          if (this.rerenderTimer !== null) window.clearTimeout(this.rerenderTimer);
+          this.rerenderTimer = window.setTimeout(() => {
+            this.rerenderTimer = null;
+            void this.loadAndRender();
+          }, 500);
         }
       })
     );
