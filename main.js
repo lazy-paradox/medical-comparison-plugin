@@ -3079,6 +3079,11 @@ var ComparisonView = class _ComparisonView extends import_obsidian9.ItemView {
       this.contentEl.removeEventListener("focusout", onOut);
     };
   }
+  clickSeg(index) {
+    const btns = document.querySelectorAll(".mc-seg-btn");
+    const btn = btns[index];
+    if (btn instanceof HTMLElement) btn.click();
+  }
   kbScrollEditorIntoView() {
     const wrap = this.contentEl.querySelector(".mc-table-wrapper");
     const editing = this.contentEl.querySelector(".mc-cell-editor");
@@ -3093,6 +3098,29 @@ var ComparisonView = class _ComparisonView extends import_obsidian9.ItemView {
   }
   async onOpen() {
     this.bindKeyboardViewport();
+    if (!import_obsidian9.Platform.isMobile) {
+      this.registerDomEvent(document, "keydown", (ev) => {
+        if (!(ev.ctrlKey || ev.metaKey)) return;
+        const t = ev.target;
+        if (t && t.closest(".mc-cell-editor")) return;
+        const active = this.app.workspace.getActiveViewOfType(import_obsidian9.ItemView);
+        if (active !== this) return;
+        const k = ev.key.toLowerCase();
+        if (k === "f") {
+          ev.preventDefault();
+          toggleFindBar(this.plugin);
+        } else if (k === "s") {
+          ev.preventDefault();
+          void this.save();
+        } else if (k === "z" && !ev.shiftKey) {
+          ev.preventDefault();
+          this.clickSeg(0);
+        } else if (k === "z" && ev.shiftKey || k === "y") {
+          ev.preventDefault();
+          this.clickSeg(1);
+        }
+      });
+    }
     this.sidebarCollapsed = window.innerWidth < 600;
     if (this.plugin.activeTemplateId) {
       this.activeTemplateId = this.plugin.activeTemplateId;
@@ -3493,6 +3521,10 @@ var ComparisonView = class _ComparisonView extends import_obsidian9.ItemView {
       newWrapper.scrollTop = savedTop;
       newWrapper.scrollLeft = savedLeft;
     }
+  }
+  toggleSidebar() {
+    this.sidebarCollapsed = !this.sidebarCollapsed;
+    this.updateSidebarVisibility();
   }
   updateSidebarVisibility() {
     const sidebar = this.contentEl.querySelector(".mc-sidebar");
@@ -4582,6 +4614,24 @@ var MedicalComparisonPlugin = class extends import_obsidian17.Plugin {
       name: "Tag existing notes (migrate folders to Comparison tags)",
       callback: () => {
         void migrateFoldersToTags(this.app, this.settings.templates);
+      }
+    });
+    this.addCommand({
+      id: "find-in-table",
+      name: "Find in table",
+      callback: () => {
+        const view = this.app.workspace.getActiveViewOfType(ComparisonView);
+        if (view) toggleFindBar(this);
+        else new import_obsidian17.Notice("Open the comparison table first");
+      }
+    });
+    this.addCommand({
+      id: "toggle-filters-sidebar",
+      name: "Toggle filters sidebar",
+      callback: () => {
+        const view = this.app.workspace.getActiveViewOfType(ComparisonView);
+        if (view) view.toggleSidebar();
+        else new import_obsidian17.Notice("Open the comparison table first");
       }
     });
     this.registerEditorExtension(redFlagEditorExtension);
