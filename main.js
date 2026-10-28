@@ -120,6 +120,95 @@ var DEFAULT_SETTINGS = {
 // src/settings/settings.ts
 var import_obsidian15 = require("obsidian");
 
+// src/settings/manualContent.ts
+var MANUAL_TITLE = "Medical Comparison - User Manual";
+var MANUAL_SECTIONS = [
+  {
+    heading: "What this plugin does",
+    lines: [
+      "Turns tagged notes into a comparison table. Each note is a row; each ## and ### heading becomes a column. Edit cells, filter conditions, compare differentials - all inside Obsidian, desktop and mobile.",
+      "Tables are TAG driven: a note joins the table when its frontmatter has a Comparison tag matching a template (for example: Comparison: Conditions)."
+    ]
+  },
+  {
+    heading: "Getting started",
+    lines: [
+      "1. Create a template (toolbar -> Template -> + New Template). Give it headings - each heading becomes a column.",
+      "2. Tag a note by adding the template name to its frontmatter as a Comparison key (or use Template -> Apply).",
+      "3. Open the table (toolbar Compare button, ribbon icon, or Ctrl+P -> Open Medical Comparison table).",
+      "4. Build a Conditions template once, and your tagged notes appear as rows."
+    ]
+  },
+  {
+    heading: "The toolbar",
+    lines: [
+      "Compare - open the table (menu lists each template).",
+      "Template - apply a template to the current note, edit templates, or create new ones.",
+      "Properties - manage property colours shown as condition chips.",
+      "Annotate - annotates the selected phrase in a note.",
+      "Zoom - and - buttons, or Ctrl+scroll; resets at the % button.",
+      "Undo / Redo - last cell changes (20 deep).",
+      "Save - automatic (button confirms). Refresh - reload the table.",
+      "Drag the logo to move; drag to the top to dock as a strip."
+    ]
+  },
+  {
+    heading: "Working with cells",
+    lines: [
+      "Click a cell to edit; click away to save. Esc cancels.",
+      "Wikilinks [[Note]] work inside cells and linkify.",
+      "Images: ![[image.png]] on its own line renders a thumbnail; click for full view; |300 sets width.",
+      "Callouts: > [!warning]- Title plus > body lines render as collapsible boxes. - starts collapsed, + starts open. Types: note, info, tip, success, question, warning, danger, bug, example, quote, plain (quiet grey).",
+      "Annotate: select a phrase while editing, click Annotate. Annotated phrases turn burgundy; click to edit or remove.",
+      "Red flags: click the flag icon on a line to flag it. Flagged lines collect in the Red Flags column. Unflag from there or the line.",
+      "Columns: drag headers to reorder; drag edges to resize; double-click an edge to auto-fit."
+    ]
+  },
+  {
+    heading: "Finding and filtering",
+    lines: [
+      "Filters sidebar - search, property filters, saved views (drag the saved views area bottom edge to resize).",
+      "Columns dropdown - show/hide any column; the arrow icon jumps the view to that column.",
+      "Find - the magnifier opens find-in-table: type, Enter to jump, Esc or x to close.",
+      "Keyboard (desktop): Ctrl+F find, Ctrl+Z undo, Ctrl+Shift+Z or Ctrl+Y redo, Ctrl+S confirm save."
+    ]
+  },
+  {
+    heading: "Differentials",
+    lines: [
+      "In a note, list differentials under ## Differential Diagnoses as - [[Note]] lines (| alias supported).",
+      "In the table, the compare icon next to a condition opens a side-by-side comparison of its differentials."
+    ]
+  },
+  {
+    heading: "Mobile notes",
+    lines: [
+      "The toolbar docks as a strip at the top on phones.",
+      "Known limitation: when editing a cell, iOS pans the view for the keyboard and a small band of empty space may appear above it. Editing long text is more comfortable in the raw sheet - the table updates within a second.",
+      "Touch: all hover actions (flags, hide, compare) are always visible; drag edges to resize."
+    ]
+  },
+  {
+    heading: "Troubleshooting",
+    lines: [
+      "Row missing after an edit - press Refresh; it re-reads every note.",
+      "Changed settings not applying - toggle the plugin off and on.",
+      "Mobile not updating - BRAT -> Check for updates, then restart the app.",
+      "Settings reset - data.json was deleted; colours re-migrate automatically."
+    ]
+  }
+];
+function renderManual(container) {
+  container.empty();
+  container.createEl("h3", { text: MANUAL_TITLE });
+  for (const sec of MANUAL_SECTIONS) {
+    container.createEl("h4", { text: sec.heading });
+    for (const ln of sec.lines) {
+      container.createEl("p", { text: ln });
+    }
+  }
+}
+
 // src/views/comparisonView.ts
 var import_obsidian9 = require("obsidian");
 
@@ -4390,6 +4479,8 @@ var MedicalComparisonSettingTab = class extends import_obsidian15.PluginSettingT
         );
       }
     }
+    const manualEl = containerEl.createDiv();
+    renderManual(manualEl);
   }
 };
 
